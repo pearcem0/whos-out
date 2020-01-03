@@ -1,5 +1,3 @@
-# TODO Work In Progress...
-
 import json
 import os
 import sys
@@ -8,8 +6,8 @@ import requests
 import datetime
 from datetime import date
 import base64
-# TODO pandas not included in vanilla lambda, create a layer or runtime
-#import pandas as pd
+import numpy
+import pandas as pd
 
 ''' Who's Out Calls BambooHR's API to find out Who's Out Of Office,
     Group and Filter on employee information such as location or department.
@@ -29,13 +27,15 @@ def lambda_handler(event, context):
         Parse the body from Slack
         Decide what to do next
     '''
-    # print("Received event: " + json.dumps(event, indent=2))
     event_data = json.dumps(event)
-    # print("Received event: " + event_data)
+    #print(type(event_data))
     event_data_dict = json.loads(event_data)
     body_encoded = str(event_data_dict['body'])
     body_decoded = str(base64.b64decode(body_encoded))
+    
     # print(body_decoded)
+    
+    # print("Received event: " + event_data)
     
     # Check the arguments to check if we need to group or filter
     section = ""
@@ -54,9 +54,10 @@ def lambda_handler(event, context):
         section = "allpeople"
         print('no section or filter provided, showing all employees.')
     
-    # TODO sort out the pandas depedency and make this dynamic!
-    result_output = getPeople("allpeople", "none")
-    
+    result_output = getPeople(section, section_filter)
+    # result_output = getPeople("allpeople", "none")
+    #print(json.dumps(event.text))
+    # print("Received event: " + json.dumps(event, indent=2))
     return {
         'statusCode': 200,
         'headers': {
@@ -123,6 +124,8 @@ def getPeople(section, section_filter):
         directory_in = getDirectory()
         if section_filter == "none":
             print('Listing Who\'s Out - Grouped by ' + section)
+            output_message += 'Listing Who\'s Out - Grouped by ' + section
+
             employee_df = pd.DataFrame({
                 'displayName': [],
                 section: []
@@ -144,17 +147,22 @@ def getPeople(section, section_filter):
                 try:
                     grouping = groups.get_group(employee_sections)
                     print('\n-----------------'+'\n'+employee_sections+'\n'+'-----------------')
+                    output_message += '\n-----------------'+'\n'+employee_sections+'\n'+'-----------------'
                     # pandas to_string defaults to right justify
                     print(grouping.displayName.to_string(index=False))
+                    output_message += '\n'+grouping.displayName.to_string(index=False)
                 except:
                     print('\nError! Could not group by: ' + str(employee_sections))
+                    output_message += '\nError! Could not group by: ' + str(employee_sections)
 
         else:
             print('-----------------'+'\n'+section_filter+'\n'+'-----------------')
+            output_message += '-----------------'+'\n'+section_filter+'\n'+'-----------------'
             for employee_id in employee_ids:
                 employee_info = getInfo(directory_in, employee_id, section)
                 if employee_info == section_filter:
                     print(getInfo(directory_in, employee_id, "displayName"))
+                    output_message += '\n'+getInfo(directory_in, employee_id, "displayName")
                 else:
                     employee_ids.remove(employee_id)
                     # remove from list in case we want to use the list again later
