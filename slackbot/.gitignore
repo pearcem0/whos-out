@@ -1,0 +1,10 @@
+.DS_Store
+layers/pandas/python/*
+node_modules
+.serverless
+.env
+dev-env.yml
+prod-env.yml
+../env.yml
+env.yml
+.vscode/*
