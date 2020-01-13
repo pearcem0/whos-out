@@ -8,25 +8,73 @@ from datetime import date
 import base64
 import numpy
 import pandas as pd
+import boto3
+from botocore.exceptions import ClientError
 
 ''' Who's Out Calls BambooHR's API to find out Who's Out Of Office,
     Group and Filter on employee information such as location or department.
     Results are returned matching the current date that the code is run.
 '''
+# Use secrets manager instead of putting secrets in lambda env vars stores as plain text 
+def get_secret_variables():
+
+    region_name = os.environ["region"]
+    stage = os.environ["stage"]
+    secret_name = "Whos-Out-Secrets-"+stage
+
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'DecryptionFailureException':
+            print('Secrets Manager can\'t decrypt the protected secret text using the provided KMS key.')
+            raise e
+        elif e.response['Error']['Code'] == 'InternalServiceErrorException':
+            print('An error occurred on the server side.')
+            raise e
+        elif e.response['Error']['Code'] == 'InvalidParameterException':
+            print('You provided an invalid value for a parameter.')
+            raise e
+        elif e.response['Error']['Code'] == 'InvalidRequestException':
+            print('You provided a parameter value that is not valid for the current state of the resource.')
+            raise e
+        elif e.response['Error']['Code'] == 'ResourceNotFoundException':
+            print('We can\'t find the resource that you asked for.')
+            raise e
+    else:
+        # Decrypts secret using the associated KMS CMK.
+        # Depending on whether the secret is a string or binary, one of these fields will be populated.
+        if 'SecretString' in get_secret_value_response:
+            secret = get_secret_value_response['SecretString']
+            return (secret)
+        else:
+            decoded_binary_secret = base64.b64decode(get_secret_value_response['SecretBinary'])
+            return(decoded_binary_secret)
+
+secret = json.loads(get_secret_variables())
+api_key = secret['bamboohr_api']
+domain = secret['bamboohr_domain']
 
 today = date.today()
 formatted_date = today.strftime("%Y/%m/%d")
 headers = {
             'accept': "application/json",
-            'authorization': os.environ["bamboohr_api"]
+            'authorization': api_key
     }
-domain = os.environ["bamboohr_domain"]
 
 def lambda_handler(event, context):
     ''' Recieve event and context from API Gateway
         Parse the body from Slack
         Decide what to do next
     '''
+
     event_data = json.dumps(event)
     #print(type(event_data))
     event_data_dict = json.loads(event_data)
@@ -197,4 +245,5 @@ def getInfo(directory_in, id, info_type):
     for people in directory["employees"]:
         if people["id"] == str(id):
                 return people[info_type]
+
 

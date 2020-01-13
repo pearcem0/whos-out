@@ -1,0 +1,150 @@
+service: whos-out
+
+frameworkVersion: ">=1.60.5"
+
+plugins:
+    - serverless-pseudo-parameters
+
+custom:
+    stage: ${opt:stage}
+    region: ${opt:region}
+
+provider:
+  name: aws
+  runtime: python3.7
+  stackTags:
+    stage: ${opt:stage}
+    owner: mike
+    service: whos-out
+  versionFunctions: false
+  environment:
+    region: ${opt:region}
+    stage: ${opt:stage}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "secretsmanager:*" 
+      Resource: {Ref: Secrets}
+
+layers:
+  Pandas:
+    path: layers/pandas
+    name: ${self:service}-Py-Pandas    # optional, Deployed Lambda layer name
+    description: Pandas python module  # optional, Description to publish to AWS
+    compatibleRuntimes:
+      - python3.7
+    licenseInfo: GPL-3.0-or-later
+
+package:
+  individually: true
+
+functions:
+  whosout:
+    handler: whosout.lambda_handler
+    layers:
+      - {Ref: PandasLambdaLayer}
+      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:5"
+      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-requests:10"
+    ### HTTP endpoints (not rest) not available with serverless yet :(
+    ### Use CloudFormation instead
+    # events:
+    #     - http:
+    #         path: /whosout
+    #         method: post
+    #         cors: true
+
+resources:
+  Description: Resources for Whos Out BambooHR slackbot
+  Resources:
+    ### HTTP endpoints (not rest) not available with serverless yet :(
+    ### Use CloudFormation instead
+    Endpoint:
+        Type: AWS::ApiGatewayV2::Api
+        Properties:
+            Name:
+                Fn::Join:
+                    - ""
+                    - - "Whos-Out-Endpoint-"
+                      - ${self:provider.stage}
+            Description: Endpoint for the WhosOut BambooHR slackbot
+            CorsConfiguration:
+                AllowMethods: 
+                    - POST
+            ProtocolType: HTTP
+            Tags:
+                stage: ${opt:stage}
+                owner: mike
+                service: whos-out
+    EndpointStage:
+        Type: AWS::ApiGatewayV2::Stage
+        Properties:
+            StageName: ${self:provider.stage}
+            ApiId: !Ref Endpoint
+            AutoDeploy: true
+            Tags:
+                stage: ${opt:stage}
+                owner: mike
+                service: whos-out
+    EndpointRoute:
+        Type: AWS::ApiGatewayV2::Route
+        Properties: 
+            ApiId: !Ref Endpoint
+            RouteKey: "$default"
+            # RouteKey:
+            #     Fn::Join:
+            #         - "/"
+            #         - - "POST"
+            #           - ${opt:stage}
+            Target:
+                Fn::Join:
+                    - "/"
+                    - - "integrations"
+                      - !Ref EndpointIntegration
+    EndpointIntegration:
+        Type: AWS::ApiGatewayV2::Integration
+        Properties: 
+            ApiId: !Ref Endpoint
+            Description: Endpoint Integration for the WhosOut BambooHR slackbot
+            IntegrationType: AWS_PROXY
+            IntegrationMethod: POST
+            # NOTE: The Integration URI would change if the service or handler name changes
+            # IntegrationUri: !Join 
+            #     - ''
+            #     - - 'arn:'
+            #       - !Ref 'AWS::Partition'
+            #       - ':apigateway:'
+            #       - !Ref 'AWS::Region'
+            #       - ':lambda:path/2015-03-31/functions/'
+            #       - !Join
+            #             - "-"
+            #             - - "whos-out"
+            #               - ${opt:stage}
+            #               - "whosout"
+            IntegrationUri: !Join 
+                - ''
+                - - 'arn:aws:apigateway:'
+                  - !Ref 'AWS::Region'
+                  - ':lambda:path/2015-03-31/functions/arn:aws:lambda:'
+                  - !Ref 'AWS::Region'
+                  - ':'
+                  - !Ref 'AWS::AccountId'
+                  - ':function:whos-out/invocations'
+            PayloadFormatVersion: "1.0"
+    Secrets:
+        Type: 'AWS::SecretsManager::Secret'
+        DeletionPolicy: Retain
+        Properties:
+          Name:
+            Fn::Join:
+                - ""
+                - - "Whos-Out-Secrets-"
+                  - ${self:provider.stage}
+          Description: Store the secret values used for the Whos Out BambooHR slackbot
+          SecretString: '{"TokenName":"Default"}'
+          Tags:
+              - Key: stage
+                Value: ${opt:stage}
+              - Key: owner
+                Value: mike
+              - Key: service
+                Value: whos-out
