@@ -20,7 +20,7 @@ def get_secret_variables():
 
     region_name = os.environ["region"]
     stage = os.environ["stage"]
-    secret_name = "Whos-Out-Secrets-"+stage
+    secret_name = "whosout-slackcommand-secrets-"+stage
 
     session = boto3.session.Session()
     client = session.client(

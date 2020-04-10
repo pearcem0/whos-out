@@ -1,4 +1,4 @@
-service: whos-out
+service: whosout
 
 frameworkVersion: ">=1.60.5"
 
@@ -14,8 +14,9 @@ provider:
   runtime: python3.7
   stackTags:
     stage: ${opt:stage}
-    owner: mike
-    service: whos-out
+    owner: mike-p
+    service: whosout
+    feature: slack-command
   versionFunctions: false
   environment:
     region: ${opt:region}
@@ -39,8 +40,8 @@ package:
   individually: true
 
 functions:
-  whosout:
-    handler: whosout.lambda_handler
+  slackSlashCommand:
+    handler: slackSlashCommand.lambda_handler
     layers:
       - {Ref: PandasLambdaLayer}
       - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:7"
@@ -54,7 +55,7 @@ functions:
     #         cors: true
 
 resources:
-  Description: Resources for Whos Out BambooHR slackbot
+  Description: Resources for Whos Out BambooHR slack command
   Resources:
     ### HTTP endpoints (not rest) not available with serverless yet :(
     ### Use CloudFormation instead
@@ -64,27 +65,29 @@ resources:
             Name:
                 Fn::Join:
                     - ""
-                    - - "Whos-Out-Endpoint-"
-                      - ${self:provider.stage}
-            Description: Endpoint for the WhosOut BambooHR slackbot
+                    - - "whosout-slack-endpoint-"
+                      - ${opt:stage}
+            Description: API Endpoint for the WhosOut BambooHR slack command
             CorsConfiguration:
                 AllowMethods: 
                     - POST
             ProtocolType: HTTP
             Tags:
                 stage: ${opt:stage}
-                owner: mike
-                service: whos-out
+                owner: mike-p
+                service: whosout
+                feature: slack-command
     EndpointStage:
         Type: AWS::ApiGatewayV2::Stage
         Properties:
-            StageName: ${self:provider.stage}
+            StageName: ${opt:stage}
             ApiId: !Ref Endpoint
             AutoDeploy: true
             Tags:
                 stage: ${opt:stage}
-                owner: mike
-                service: whos-out
+                owner: mike-p
+                service: whosout
+                feature: slack-command
     EndpointRoute:
         Type: AWS::ApiGatewayV2::Route
         Properties: 
@@ -104,22 +107,10 @@ resources:
         Type: AWS::ApiGatewayV2::Integration
         Properties: 
             ApiId: !Ref Endpoint
-            Description: Endpoint Integration for the WhosOut BambooHR slackbot
+            Description: API Endpoint Integration for the WhosOut BambooHR slack command
             IntegrationType: AWS_PROXY
             IntegrationMethod: POST
             # NOTE: The Integration URI would change if the service or handler name changes
-            # IntegrationUri: !Join 
-            #     - ''
-            #     - - 'arn:'
-            #       - !Ref 'AWS::Partition'
-            #       - ':apigateway:'
-            #       - !Ref 'AWS::Region'
-            #       - ':lambda:path/2015-03-31/functions/'
-            #       - !Join
-            #             - "-"
-            #             - - "whos-out"
-            #               - ${opt:stage}
-            #               - "whosout"
             IntegrationUri: !Join 
                 - ''
                 - - 'arn:aws:apigateway:'
@@ -128,8 +119,36 @@ resources:
                   - !Ref 'AWS::Region'
                   - ':'
                   - !Ref 'AWS::AccountId'
-                  - ':function:whos-out/invocations'
+                  - ':function:whosout'
+                  - '-'
+                  - ${opt:stage}
+                  - '-slackSlashCommand/invocations'
             PayloadFormatVersion: "1.0"
+    ExecuteLambdaPermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName: !Join 
+          - ''
+          - - 'arn:aws:lambda:'
+            - !Ref 'AWS::Region'
+            - ':'
+            - !Ref 'AWS::AccountId'
+            - ':function:whosout-'
+            - ${opt:stage}
+            - '-slackSlashCommand'
+        Action: lambda:InvokeFunction
+        Principal: apigateway.amazonaws.com
+        SourceArn: !Join 
+          - ''
+          - - 'arn:aws:execute-api:'
+            - !Ref 'AWS::Region'
+            - ':'
+            - !Ref 'AWS::AccountId'
+            - ':'
+            - !Ref Endpoint
+            - '/*/*/whosout-'
+            - ${opt:stage}
+            - '-slackSlashCommand'
     Secrets:
         Type: 'AWS::SecretsManager::Secret'
         DeletionPolicy: Retain
@@ -137,14 +156,16 @@ resources:
           Name:
             Fn::Join:
                 - ""
-                - - "Whos-Out-Secrets-"
-                  - ${self:provider.stage}
-          Description: Store the secret values used for the Whos Out BambooHR slackbot
+                - - "whosout-slackcommand-secrets-"
+                  - ${opt:stage}
+          Description: Store the secret values used for the Whos Out BambooHR slack command
           SecretString: '{"TokenName":"Default"}'
           Tags:
               - Key: stage
                 Value: ${opt:stage}
               - Key: owner
-                Value: mike
+                Value: mike-p
               - Key: service
-                Value: whos-out
+                Value: whosout
+              - Key: feature
+                Value: slack-command
