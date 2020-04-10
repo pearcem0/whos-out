@@ -8,3 +8,4 @@
 - [ ] Return a proper response if no results are found.
 - [ ] Add test events to mock calls from slack user agent.
 - [ ] Personalise the response using user_id or user_name from event blob?
+- [ ] Parse section filters properly in case of symbols or spaces e.g "Data Science"
