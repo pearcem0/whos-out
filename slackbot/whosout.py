@@ -70,7 +70,7 @@ headers = {
     }
 
 def lambda_handler(event, context):
-    ''' Recieve event and context from API Gateway
+    ''' Receive event and context from API Gateway
         Parse the body from Slack
         Decide what to do next
     '''
@@ -82,17 +82,24 @@ def lambda_handler(event, context):
     body_decoded = str(base64.b64decode(body_encoded))
     
     # print(body_decoded)
-    
+
     # print("Received event: " + event_data)
     
     # Check the arguments to check if we need to group or filter
+    # %21 is !
+    cry_for_help = ["help", "help%21", "list"]
+    no_help_needed=True
     section = ""
     section_filter = ""
     args = filter_input_args(body_decoded)
 
     if len(args) > 0:
-        section = args[0]
-        print('section provided: ', section)
+        if args[0].upper() in (cries.upper() for cries in cry_for_help):
+            no_help_needed=False
+            print('user called for help!')
+        else:
+            section = args[0]
+            print('section provided: ', section)
         if len(args) > 1:
             section_filter = args[1]
             print('section & filter provided: ', section, ' + ', section_filter)
@@ -102,9 +109,16 @@ def lambda_handler(event, context):
         section = "allpeople"
         print('no section or filter provided, showing all employees.')
     
-    result_output = getPeople(section, section_filter)
+    if no_help_needed:
+        result_output = getPeople(section, section_filter)
+    else:
+        result_output = """
+        Type `/whosout` with no parameters to list all employees out of the office today.
+    Add a parameter to filter, possible filters include `location` and `department`
+    Add another parameter to filter based on the previous parameter, for example `/whosout location Manchester`
+    """
     # result_output = getPeople("allpeople", "none")
-    #print(json.dumps(event.text))
+    # print(json.dumps(event.text))
     # print("Received event: " + json.dumps(event, indent=2))
     return {
         'statusCode': 200,
