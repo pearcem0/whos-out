@@ -101,7 +101,8 @@ def lambda_handler(event, context):
             section = args[0]
             print('section provided: ', section)
         if len(args) > 1:
-            section_filter = args[1]
+            # argument may have spaces in.. this comes through as a + from the original event blob
+            section_filter = args[1].replace("+"," ")
             print('section & filter provided: ', section, ' + ', section_filter)
         else:
             section_filter = "none"
