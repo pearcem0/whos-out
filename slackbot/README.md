@@ -26,10 +26,11 @@ Original script adapted to work as a Slack "Slash Command".
 ## Setup on Slack
 
 Create an application and use the api gateway endpoint as the Request URL for a slash command.
+You can check the API gateway url on the AWS console after deploying, make sure you include the full resource path when you fill in the Request URL for the slash command, for example _https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/whos-out-<stage>-whosout_.
 
-The command may be something _like_ `/whosout [department or location] [filter (optional)]`
+The command may be something _like_ `/whosout [department or location (optional)] [filter (optional)]`
 
 ## Acknowledgements
 
-* [Quy Tang sample Lambda Layer](layershttps://github.com/qtangs/sample-aws-lambda-layer)
+* [Quy Tang sample Lambda Layer](https://github.com/qtangs/sample-aws-lambda-layer)
 * [KLayers Lambda Layers](https://github.com/keithrozario/Klayers/blob/master/deployments/python3.7/arns/eu-west-1.json)
