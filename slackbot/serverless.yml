@@ -43,8 +43,8 @@ functions:
     handler: whosout.lambda_handler
     layers:
       - {Ref: PandasLambdaLayer}
-      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:5"
-      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-requests:10"
+      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:7"
+      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-requests:13"
     ### HTTP endpoints (not rest) not available with serverless yet :(
     ### Use CloudFormation instead
     # events:
