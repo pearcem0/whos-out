@@ -178,7 +178,10 @@ def getPeople(section, section_filter, formatted_date):
     except requests.exceptions.RequestException as e:  # This is the correct syntax
         print('Error making request to BambooHR API!:')
         print(e)
-        sys.exit(1)
+
+    # except requests.exceptions.RequestException as e:  # This is the correct syntax
+    #     print(e)
+    #     sys.exit(1)
     people = json.loads(people_out.text)
 
     employee_ids = []
@@ -206,37 +209,43 @@ def getPeople(section, section_filter, formatted_date):
     else:
         directory_in = getDirectory()
         if section_filter == "none":
-            print('Listing Who\'s Out - Grouped by ' + section)
-            output_message += 'Listing Who\'s Out - Grouped by ' + section
+            try:
+                print('Listing Who\'s Out - Grouped by ' + section)
+                output_message += 'Listing Who\'s Out - Grouped by ' + section
 
-            employee_df = pd.DataFrame({
-                'displayName': [],
-                section: []
-            })
-            sections_list = []
+                employee_df = pd.DataFrame({
+                    'displayName': [],
+                    section: []
+                })
+                sections_list = []
 
-            for person_id in employee_ids:
-                employee_name = getInfo(directory_in, person_id, "displayName")
-                employee_section = getInfo(directory_in, person_id, section)
+                for person_id in employee_ids:
+                    employee_name = getInfo(directory_in, person_id, "displayName")
+                    employee_section = getInfo(directory_in, person_id, section)
 
-                if employee_section not in sections_list:
-                    sections_list.append(employee_section)
+                    if employee_section not in sections_list:
+                        sections_list.append(employee_section)
 
-                employee_df = employee_df.append({'displayName' : employee_name , section : employee_section}, ignore_index=True)
+                    employee_df = employee_df.append({'displayName' : employee_name , section : employee_section}, ignore_index=True)
 
-            employee_df_sorted = employee_df.sort_values(by=[section])
-            groups = employee_df_sorted.groupby([section])
-            for employee_sections in sections_list:
-                try:
-                    grouping = groups.get_group(employee_sections)
-                    print('\n-----------------'+'\n'+employee_sections+'\n'+'-----------------')
-                    output_message += '\n-----------------'+'\n'+employee_sections+'\n'+'-----------------'
-                    # pandas to_string defaults to right justify
-                    print(grouping.displayName.to_string(index=False))
-                    output_message += '\n'+grouping.displayName.to_string(index=False)
-                except:
-                    print('\nError! Could not group by: ' + str(employee_sections))
-                    output_message += '\nError! Could not group by: ' + str(employee_sections)
+                employee_df_sorted = employee_df.sort_values(by=[section])
+                groups = employee_df_sorted.groupby([section])
+                for employee_sections in sections_list:
+                    try:
+                        grouping = groups.get_group(employee_sections)
+                        print('\n-----------------'+'\n'+employee_sections+'\n'+'-----------------')
+                        output_message += '\n-----------------'+'\n'+employee_sections+'\n'+'-----------------'
+                        # pandas to_string defaults to right justify
+                        print(grouping.displayName.to_string(index=False))
+                        output_message += '\n'+grouping.displayName.to_string(index=False)
+                    except:
+                        print('\nError! Could not group by: ' + str(employee_sections))
+                        output_message += '\nError! Could not group by: ' + str(employee_sections)
+            except KeyError:
+                output_message="""
+Something went wrong getting a response from BambooHR :(
+Type `/whosout help` for more examples or check BambooHR API documentation for possible Field Names."""
+                print(output_message)
 
         else:
             print('-----------------'+'\n'+section_filter+'\n'+'-----------------')
@@ -249,6 +258,7 @@ def getPeople(section, section_filter, formatted_date):
                 else:
                     employee_ids.remove(employee_id)
                     # remove from list in case we want to use the list again later
+
 
     return output_message
     
