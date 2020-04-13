@@ -1,0 +1,9 @@
+moment==0.8.2
+times==0.7
+arrow==0.12.1
+dateparser==0.7.0
+pytz==2018.7
+regex==2018.11.22
+tzlocal==1.5.1
+python-dateutil==2.8.0
+six==1.5

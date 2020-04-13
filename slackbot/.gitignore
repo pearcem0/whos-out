@@ -1,5 +1,5 @@
 .DS_Store
-layers/pandas/python/*
+layers/*/python/*
 node_modules
 .serverless
 .env
@@ -8,3 +8,4 @@ prod-env.yml
 ../env.yml
 env.yml
 .vscode/*
+__pycache__
