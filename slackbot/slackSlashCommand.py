@@ -8,6 +8,8 @@ from datetime import date
 import base64
 import numpy
 import pandas as pd
+import moment
+import times
 import boto3
 from botocore.exceptions import ClientError
 
@@ -34,7 +36,10 @@ def get_secret_variables():
         )
     except ClientError as e:
         if e.response['Error']['Code'] == 'DecryptionFailureException':
-            print('Secrets Manager can\'t decrypt the protected secret text using the provided KMS key.')
+            print(
+                "Secrets Manager can't decrypt the protected secret text using the provided KMS key."
+            )
+
             raise e
         elif e.response['Error']['Code'] == 'InternalServiceErrorException':
             print('An error occurred on the server side.')
@@ -43,20 +48,21 @@ def get_secret_variables():
             print('You provided an invalid value for a parameter.')
             raise e
         elif e.response['Error']['Code'] == 'InvalidRequestException':
-            print('You provided a parameter value that is not valid for the current state of the resource.')
+            print(
+                'You provided a parameter value that is not valid for the current state of the resource.'
+            )
+
             raise e
         elif e.response['Error']['Code'] == 'ResourceNotFoundException':
-            print('We can\'t find the resource that you asked for.')
+            print("We can't find the resource that you asked for.")
             raise e
     else:
         # Decrypts secret using the associated KMS CMK.
-        # Depending on whether the secret is a string or binary, one of these fields will be populated.
+                # Depending on whether the secret is a string or binary, one of these fields will be populated.
         if 'SecretString' in get_secret_value_response:
-            secret = get_secret_value_response['SecretString']
-            return (secret)
+            return get_secret_value_response['SecretString']
         else:
-            decoded_binary_secret = base64.b64decode(get_secret_value_response['SecretBinary'])
-            return(decoded_binary_secret)
+            return base64.b64decode(get_secret_value_response['SecretBinary'])
 
 secret = json.loads(get_secret_variables())
 api_key = secret['bamboohr_api']
@@ -68,6 +74,16 @@ headers = {
             'accept': "application/json",
             'authorization': api_key
     }
+
+# def parse_input():
+#     print('parsing input...')
+
+def get_help():
+    return """
+Type `/whosout` with no parameters to list all employees out of the office today.
+Add a parameter to filter, possible filters include `location` and `department`
+Add another parameter to filter based on the previous parameter, for example `/whosout location Manchester`"""
+
 
 def lambda_handler(event, context):
     ''' Receive event and context from API Gateway
@@ -89,6 +105,7 @@ def lambda_handler(event, context):
     # %21 is !
     cry_for_help = ["help", "help%21", "list"]
     no_help_needed=True
+    dates = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "today", "this week", "next week", "tomorrow"]
     section = ""
     section_filter = ""
     args = filter_input_args(body_decoded)
@@ -97,6 +114,11 @@ def lambda_handler(event, context):
         if args[0].upper() in (cries.upper() for cries in cry_for_help):
             no_help_needed=False
             print('user called for help!')
+        elif args[0].upper() in (date.upper() for date in dates):
+            formatted_date = moment.date(args[0]).strftime("%Y/%m/%d")
+            section = "allpeople"
+            print('user provided a date.')
+            print(formatted_date)
         else:
             section = args[0]
             print('section provided: ', section)
@@ -111,13 +133,10 @@ def lambda_handler(event, context):
         print('no section or filter provided, showing all employees.')
     
     if no_help_needed:
-        result_output = getPeople(section, section_filter)
+        formatted_date = today.strftime("%Y/%m/%d")
+        result_output = getPeople(section, section_filter, formatted_date)
     else:
-        result_output = """
-        Type `/whosout` with no parameters to list all employees out of the office today.
-    Add a parameter to filter, possible filters include `location` and `department`
-    Add another parameter to filter based on the previous parameter, for example `/whosout location Manchester`
-    """
+        result_output = get_help()
     # result_output = getPeople("allpeople", "none")
     # print(json.dumps(event.text))
     # print("Received event: " + json.dumps(event, indent=2))
@@ -138,7 +157,7 @@ def filter_input_args(user_text):
     
     return clean_text_field_sliced
     
-def getPeople(section, section_filter):
+def getPeople(section, section_filter, formatted_date):
     ''' The getPeople function prints the list of employees that are Out Of Office,
         grouped and/or filtered based on user input.
 
@@ -149,7 +168,7 @@ def getPeople(section, section_filter):
         then sorts by section, then prints each group of sections.
         If a section is provided with a section filter (e.g. department, sales),
         the function only fetches information about that section and only prints matching sections.
-    '''
+    ''' 
     output_message = 'Who\'s Out - '+formatted_date+'\n'
     people_url = "https://api.bamboohr.com/api/gateway.php/"+domain+"/v1/time_off/whos_out/"
     people_querystring = {"start":formatted_date,"end":formatted_date}
@@ -167,10 +186,11 @@ def getPeople(section, section_filter):
     for person in people:
         start_dt = datetime.datetime.strptime(person["start"], '%Y-%m-%d')
         end_dt = datetime.datetime.strptime(person["end"], '%Y-%m-%d')
-        if start_dt.date() <= date.today() and end_dt.date() >= date.today():
+        # if start_dt.date() <= date.today() and end_dt.date() >= date.today():
+        if start_dt.date() <= datetime.datetime.strptime(formatted_date, '%Y/%m/%d').date() and end_dt.date() >= datetime.datetime.strptime(formatted_date, '%Y/%m/%d').date():
             try:
-                name = person["name"]
                 if section == "allpeople":
+                    name = person["name"]
                     employee_names.append(name)
                 else:
                     employee_ids.append(person["employeeId"])
@@ -181,8 +201,8 @@ def getPeople(section, section_filter):
         # [print(i) for i in employee_names]
         for i in employee_names:
             output_message += "{}\n".format(i)
-            
-            
+
+
     else:
         directory_in = getDirectory()
         if section_filter == "none":
@@ -247,8 +267,7 @@ def getDirectory():
         print(e)
         sys.exit(1)
 
-    directory = json.loads(full_dir.text)
-    return (directory)
+    return json.loads(full_dir.text)
 
 def getInfo(directory_in, id, info_type):
     ''' The getInfo function gets the directory information for a single employee.
