@@ -1,0 +1,97 @@
+{
+    "version": 2,
+    "path": "/test/slackSlashCommand",
+    "httpMethod": "POST",
+    "headers": {
+      "Content-Length": "350",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Host": "ahfe9v4f23.execute-api.us-east-1.amazonaws.com",
+      "User-Agent": "Slackbot 1.0 (+https://api.slack.com/robots)",
+      "X-Amzn-Trace-Id": "Root=1-5e0913bd-f949c770f527c94c772f6528",
+      "X-Forwarded-For": "53.172.190.75",
+      "X-Forwarded-Port": "443",
+      "X-Forwarded-Proto": "https",
+      "X-Slack-Request-Timestamp": "1577653181",
+      "X-Slack-Signature": "v0=4a7f9d7e4f48679e7a3f63610b005f1631148302bffae4b2d37e61158739560a",
+      "accept": "application/json,*/*",
+      "accept-encoding": "gzip,deflate"
+    },
+    "multiValueHeaders": {
+      "Content-Length": [
+        "350"
+      ],
+      "Content-Type": [
+        "application/x-www-form-urlencoded"
+      ],
+      "Host": [
+        "ahfe9v4f23.execute-api.us-east-1.amazonaws.com"
+      ],
+      "User-Agent": [
+        "Slackbot 1.0 (+https://api.slack.com/robots)"
+      ],
+      "X-Amzn-Trace-Id": [
+        "Root=1-5e0913bd-f949c770f527c94c772f6528"
+      ],
+      "X-Forwarded-For": [
+        "53.172.190.75"
+      ],
+      "X-Forwarded-Port": [
+        "443"
+      ],
+      "X-Forwarded-Proto": [
+        "https"
+      ],
+      "X-Slack-Request-Timestamp": [
+        "1577653181"
+      ],
+      "X-Slack-Signature": [
+        "v0=4a7f9d7e4f48679e7a3f63610b005f1631148302bffae4b2d37e61158739560a"
+      ],
+      "accept": [
+        "application/json,*/*"
+      ],
+      "accept-encoding": [
+        "gzip,deflate"
+      ]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "requestContext": {
+      "accountId": "766192781453",
+      "apiId": "ahfe9v4f23",
+      "authorizer": {
+        "claims": null,
+        "scopes": null
+      },
+      "domainName": "ahfe9v4f23.execute-api.us-east-1.amazonaws.com",
+      "domainPrefix": "ahfe9v4f23",
+      "extendedRequestId": "FfAFngAJIAMESPw=",
+      "httpMethod": "POST",
+      "identity": {
+        "accessKey": null,
+        "accountId": null,
+        "caller": null,
+        "cognitoAuthenticationProvider": null,
+        "cognitoAuthenticationType": null,
+        "cognitoIdentityId": null,
+        "cognitoIdentityPoolId": null,
+        "principalOrgId": null,
+        "sourceIp": "53.172.190.75",
+        "user": null,
+        "userAgent": "Slackbot 1.0 (+https://api.slack.com/robots)",
+        "userArn": null
+      },
+      "path": "/test/slackSlashCommand",
+      "protocol": "HTTP/1.1",
+      "requestId": "FfAFngAJIAMESPw=",
+      "requestTime": "29/Dec/2019:20:59:41 +0000",
+      "requestTimeEpoch": 1577653181448,
+      "resourceId": null,
+      "resourcePath": "/slackSlashCommand",
+      "stage": "test"
+    },
+    "pathParameters": null,
+    "stageVariables": null,
+    "body": "<body>",
+    "isBase64Encoded": true
+  }
