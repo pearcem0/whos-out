@@ -17,6 +17,7 @@ provider:
     owner: mike-p
     service: whosout
     feature: slack-command
+    tenant: peak
   versionFunctions: false
   environment:
     region: ${opt:region}
@@ -35,6 +36,13 @@ layers:
     compatibleRuntimes:
       - python3.7
     licenseInfo: GPL-3.0-or-later
+  Moment:
+    path: layers/moment
+    name: ${self:service}-Py-Moment    # optional, Deployed Lambda layer name
+    description: Moment python module  # optional, Description to publish to AWS
+    compatibleRuntimes:
+      - python3.7
+    licenseInfo: GPL-3.0-or-later
 
 package:
   individually: true
@@ -44,6 +52,7 @@ functions:
     handler: slackSlashCommand.lambda_handler
     layers:
       - {Ref: PandasLambdaLayer}
+      - {Ref: MomentLambdaLayer}
       - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:7"
       - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-requests:13"
     ### HTTP endpoints (not rest) not available with serverless yet :(
@@ -77,6 +86,7 @@ resources:
                 owner: mike-p
                 service: whosout
                 feature: slack-command
+                tenant: peak
     EndpointStage:
         Type: AWS::ApiGatewayV2::Stage
         Properties:
@@ -88,6 +98,7 @@ resources:
                 owner: mike-p
                 service: whosout
                 feature: slack-command
+                tenant: peak
     EndpointRoute:
         Type: AWS::ApiGatewayV2::Route
         Properties: 
@@ -169,3 +180,5 @@ resources:
                 Value: whosout
               - Key: feature
                 Value: slack-command
+              - Key: tenant
+                Value: peak
