@@ -97,64 +97,24 @@ def lambda_handler(event, context):
     
     body_encoded = str(event_data_dict['body'])
     body_decoded = str(base64.b64decode(body_encoded))
+    # print(body_decoded)
     
     response_url_received = str(re.search('&response_url=(.*)&trigger_id', body_decoded).group(1))
     
-    print(response_url_received)
-    response_url_slashes_repl = response_url_received.replace("%2F", "/")
-    response_url_colons_repl = response_url_slashes_repl.replace("%3A", ":")
-    print(response_url_colons_repl)
-    #https%3A%2F%2Fhooks.slack.com%2Fcommands%2FT032J49RM%2F1138659398832%2FgEJ2aRInwmyUd01Ax8M0Aj5H&trigger_id=1108089571110.3086145871.ab6746b3607950df6fdfe1d113fb4aa1'
-    
-    # print(body_decoded)
+    lambdac = boto3.client('lambda')
+    # Note to self, please do not leave this hard-coded
+    response = lambdac.invoke(
+        FunctionName='whosout-prod-slackSlashCommandReturn',
+        InvocationType='Event',
+        Payload=json.dumps({'message': 'function called...'})
+    )
 
-    # print("Received event: " + event_data)
-    
-    # Check the arguments to check if we need to group or filter
-    # %21 is !
-    cry_for_help = ["help", "help%21", "list"]
-    no_help_needed=True
-    dates = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "today", "this week", "next week", "tomorrow"]
-    section = ""
-    section_filter = ""
-    args = filter_input_args(body_decoded)
-
-    if len(args) > 0:
-        if args[0].upper() in (cries.upper() for cries in cry_for_help):
-            no_help_needed=False
-            print('user called for help!')
-        elif args[0].upper() in (date.upper() for date in dates):
-            formatted_date = moment.date(args[0]).strftime("%Y/%m/%d")
-            section = "allpeople"
-            print('user provided a date.')
-            print(formatted_date)
-        else:
-            section = args[0]
-            print('section provided: ', section)
-        if len(args) > 1:
-            # argument may have spaces in.. this comes through as a + from the original event blob
-            section_filter = args[1].replace("+"," ")
-            print('section & filter provided: ', section, ' + ', section_filter)
-        else:
-            section_filter = "none"
-    else:
-        section = "allpeople"
-        print('no section or filter provided, showing all employees.')
-    
-    if no_help_needed:
-        formatted_date = today.strftime("%Y/%m/%d")
-        result_output = getPeople(section, section_filter, formatted_date)
-    else:
-        result_output = get_help()
-    # result_output = getPeople("allpeople", "none")
-    # print(json.dumps(event.text))
-    # print("Received event: " + json.dumps(event, indent=2))
     return {
         'statusCode': 200,
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': result_output
+        'body': json.dumps({'message': 'working on it...'})
     }
 
 def filter_input_args(user_text):

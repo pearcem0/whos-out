@@ -25,8 +25,21 @@ provider:
   iamRoleStatements:
     - Effect: "Allow"
       Action:
-        - "secretsmanager:*" 
+        - "secretsmanager:*"
       Resource: {Ref: Secrets}
+    - Effect: "Allow"
+      Action:
+        - "lambda:*"
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:lambda:'
+            - Ref: 'AWS::Region'
+            - ':'
+            - Ref: 'AWS::AccountId'
+            - ':function:whosout-'
+            - ${opt:stage}
+            - '-slackSlashCommand*'
 
 layers:
   Pandas:
