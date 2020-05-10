@@ -91,6 +91,9 @@ def lambda_handler(event, context):
         Decide what to do next
     '''
 
+    # Getting ready to call relevant functions in the upcoming steps
+    invokeFunction = boto3.client("Lambda", region=os.environ["AWS_REGION"])
+
     event_data = json.dumps(event)
     #print(type(event_data))
     event_data_dict = json.loads(event_data)
@@ -114,6 +117,13 @@ def lambda_handler(event, context):
         if args[0].upper() in (cries.upper() for cries in cry_for_help):
             no_help_needed=False
             print('user called for help!')
+            payload = {"message": "user called for help!"}
+            # event or callback?
+            #get_help = invokeFunction.invoke(FunctionName = "help", InvocationType = "Event", Payload = json.dumps(payload))
+            get_help = invokeFunction.invoke(FunctionName = "help", InvocationType = "RequestResponse", Payload = json.dumps(payload))
+            # return as is, or as {"response": "this"}?
+            # This should be the value generated ready to post back to slack
+            print(get_help)
         elif args[0].upper() in (date.upper() for date in dates):
             formatted_date = moment.date(args[0]).strftime("%Y/%m/%d")
             section = "allpeople"

@@ -62,7 +62,9 @@ functions:
     #         path: /whosout
     #         method: post
     #         cors: true
-
+  help:
+    handler: help.lambda_handler
+    
 resources:
   Description: Resources for Whos Out BambooHR slack command
   Resources:
