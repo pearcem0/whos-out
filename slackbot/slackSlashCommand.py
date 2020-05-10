@@ -92,10 +92,19 @@ def lambda_handler(event, context):
     '''
 
     event_data = json.dumps(event)
-    #print(type(event_data))
+    print(type(event_data))
     event_data_dict = json.loads(event_data)
+    
     body_encoded = str(event_data_dict['body'])
     body_decoded = str(base64.b64decode(body_encoded))
+    
+    response_url_received = str(re.search('&response_url=(.*)&trigger_id', body_decoded).group(1))
+    
+    print(response_url_received)
+    response_url_slashes_repl = response_url_received.replace("%2F", "/")
+    response_url_colons_repl = response_url_slashes_repl.replace("%3A", ":")
+    print(response_url_colons_repl)
+    #https%3A%2F%2Fhooks.slack.com%2Fcommands%2FT032J49RM%2F1138659398832%2FgEJ2aRInwmyUd01Ax8M0Aj5H&trigger_id=1108089571110.3086145871.ab6746b3607950df6fdfe1d113fb4aa1'
     
     # print(body_decoded)
 
