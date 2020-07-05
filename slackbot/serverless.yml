@@ -53,8 +53,8 @@ functions:
     layers:
       - {Ref: PandasLambdaLayer}
       - {Ref: MomentLambdaLayer}
-      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:7"
-      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-requests:13"
+      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-numpy:10"
+      - "arn:aws:lambda:#{AWS::Region}:113088814899:layer:Klayers-python37-requests:15"
     ### HTTP endpoints (not rest) not available with serverless yet :(
     ### Use CloudFormation instead
     # events:
