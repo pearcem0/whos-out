@@ -164,6 +164,7 @@ def lambda_handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
+        'response_type': 'ephemeral',
         'body': result_output
     }
 
