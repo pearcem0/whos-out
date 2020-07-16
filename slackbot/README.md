@@ -14,6 +14,7 @@ Original script adapted to work as a Slack "Slash Command".
 * `export AWS_PROFILE=<aws_profile_name>`
 * Package the project
   * `pushd layers/pandas && chmod +x get_layer_packages.sh && ./get_layer_packages.sh && popd`
+  * `pushd layers/moment && chmod +x get_layer_packages.sh && ./get_layer_packages.sh && popd`
   * `serverless package --region <aws_region> --stage <development_stage>`
 * Deploy the project
   * `serverless deploy --package .serverless --region <aws_region> --stage <development_stage>`
