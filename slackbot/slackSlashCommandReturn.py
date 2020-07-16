@@ -101,29 +101,10 @@ def lambda_handler(event, context):
     
     response_url_received = str(re.search('&response_url=(.*)&trigger_id', body_decoded).group(1))
     
-    print(response_url_received)
     response_url_slashes_repl = response_url_received.replace("%2F", "/")
     response_url_colons_repl = response_url_slashes_repl.replace("%3A", ":")
     clean_url=response_url_colons_repl
     
-    print("URL to call back: " + clean_url)
-
-########### TEMP
-    slack_data = {'text': "Here is a list of who is out! (temporary stub only)",
-    "response_type": "ephemeral"
-    }
-
-    response = requests.post(
-        clean_url, data=json.dumps(slack_data),
-        headers={'Content-Type': 'application/json'}
-    )   
-    if response.status_code != 200:
-        raise ValueError(
-            'Request to slack returned an error %s, the response is:\n%s'
-            % (response.status_code, response.text)
-        )
-########### TEMP ^^^
-
     # Check the arguments to check if we need to group or filter
     # %21 equates to !
     cry_for_help = ["help", "help%21", "list"]
@@ -163,6 +144,21 @@ def lambda_handler(event, context):
     # result_output = getPeople("allpeople", "none")
     # print(json.dumps(event.text))
     # print("Received event: " + json.dumps(event, indent=2))
+    
+    return_data = {'text': result_output,
+    "response_type": "ephemeral"
+    }
+
+    slack_response = requests.post(
+        clean_url, data=json.dumps(return_data),
+        headers={'Content-Type': 'application/json'}
+    )   
+    if slack_response.status_code != 200:
+        raise ValueError(
+            'Request to slack returned an error %s, the response is:\n%s'
+            % (response.status_code, response.text)
+        )
+
     return {
         'statusCode': 200,
         'headers': {

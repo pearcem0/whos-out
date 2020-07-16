@@ -30,5 +30,5 @@ def lambda_handler(event, context):
         'headers': {
             'Content-Type': 'text/plain'
         },
-        'body': ':thinking_face: Let\'s see who is out of the office today...')
+        'body': ':thinking_face: Let\'s see who is out of the office...'
     }
