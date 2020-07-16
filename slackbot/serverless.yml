@@ -1,5 +1,4 @@
 service: whosout
-
 frameworkVersion: ">=1.60.5"
 
 plugins:
@@ -25,10 +24,6 @@ provider:
   iamRoleStatements:
     - Effect: "Allow"
       Action:
-        - "secretsmanager:*"
-      Resource: {Ref: Secrets}
-    - Effect: "Allow"
-      Action:
         - "lambda:*"
       Resource:
         Fn::Join:
@@ -40,6 +35,10 @@ provider:
             - ':function:whosout-'
             - ${opt:stage}
             - '-slackSlashCommand*'
+    - Effect: "Allow"
+        Action:
+          - "secretsmanager:*"
+        Resource: {Ref: Secrets}
 
 layers:
   Pandas:
@@ -63,6 +62,9 @@ package:
 functions:
   slackSlashCommand:
     handler: slackSlashCommand.lambda_handler
+
+  slackSlashCommandReturn:
+    handler: slackSlashCommandReturn.lambda_handler
     layers:
       - {Ref: PandasLambdaLayer}
       - {Ref: MomentLambdaLayer}

@@ -90,9 +90,9 @@ def lambda_handler(event, context):
         Parse the body from Slack
         Decide what to do next
     '''
-
+    
     event_data = json.dumps(event)
-    print(type(event_data))
+    print(event_data)
     event_data_dict = json.loads(event_data)
     
     body_encoded = str(event_data_dict['body'])
@@ -106,10 +106,26 @@ def lambda_handler(event, context):
     response_url_colons_repl = response_url_slashes_repl.replace("%3A", ":")
     clean_url=response_url_colons_repl
     
-    # print("Received event: " + event_data)
-    
+    print("URL to call back: " + clean_url)
+
+########### TEMP
+    slack_data = {'text': "Here is a list of who is out! (temporary stub only)",
+    "response_type": "ephemeral"
+    }
+
+    response = requests.post(
+        clean_url, data=json.dumps(slack_data),
+        headers={'Content-Type': 'application/json'}
+    )   
+    if response.status_code != 200:
+        raise ValueError(
+            'Request to slack returned an error %s, the response is:\n%s'
+            % (response.status_code, response.text)
+        )
+########### TEMP ^^^
+
     # Check the arguments to check if we need to group or filter
-    # %21 is !
+    # %21 equates to !
     cry_for_help = ["help", "help%21", "list"]
     no_help_needed=True
     dates = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "today", "this week", "next week", "tomorrow"]
