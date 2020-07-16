@@ -1,5 +1,6 @@
 # @TODO
 
+- [ ] Keep track of the validation token Slack gives you when the command is created. Always validate the token field in an incoming slash command request has been issued to you by Slack.
 - [ ] Consider fetching list of possible sections from bamboo to validate user input and provide useful help text?
 - [ ] Check the command in the event blob and use that to make the help text dynamic
 - [ ] Find some way to match user input and sections in bamboo regardless of capitalisation i.e. sales or Sales.
