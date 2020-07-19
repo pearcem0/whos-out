@@ -78,12 +78,29 @@ headers = {
 # def parse_input():
 #     print('parsing input...')
 
-def get_help():
-    return """
+def get_help(provided_argument):
+    output_message=""
+
+    if provided_argument == "show_lists":
+        output_message="""
+Type `/whosout list <category>` to list all possible fields in that category.
+Possible categories currently include `location` and `department`.
+For example `/whosout list department`"""
+    elif provided_argument == "default":
+        output_message="""
 Type `/whosout` with no parameters to list all employees out of the office today.
 Add a parameter to filter, possible filters include `location` and `department`
-Add another parameter to filter based on the previous parameter, for example `/whosout location Manchester`"""
+Add another parameter to filter based on the previous parameter, for example `/whosout location Manchester`
+Type `/whosout list <category>` to list all possible fields in that category.
+Possible categories currently include `location` and `department`.
+For example `/whosout list department`"""
+    else:
+        # assuming a selected list has been passed
+        categories_returned=getCategoryList(provided_argument)
+        for _ in categories_returned:
+            output_message += "{}\n".format(_)
 
+    return output_message
 
 def lambda_handler(event, context):
     ''' Receive event and context from API Gateway
@@ -92,7 +109,7 @@ def lambda_handler(event, context):
     '''
     
     event_data = json.dumps(event)
-    print(event_data)
+    #print(event_data)
     event_data_dict = json.loads(event_data)
     
     body_encoded = str(event_data_dict['body'])
@@ -109,6 +126,8 @@ def lambda_handler(event, context):
     # %21 equates to !
     cry_for_help = ["help", "help%21", "list"]
     no_help_needed=True
+    return_selected_list=False
+    return_possible_lists=False
     dates = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "today", "this week", "next week", "tomorrow"]
     section = ""
     section_filter = ""
@@ -118,12 +137,20 @@ def lambda_handler(event, context):
         if args[0].upper() in (cries.upper() for cries in cry_for_help):
             no_help_needed=False
             print('user called for help!')
+            if args[0].upper() == "LIST":
+                if len(args) > 1:
+                    print('user wants to list something specific...')
+                    selected_list = args[1]
+                    return_selected_list=True
+                else:
+                    print('user wants to know what they can list...')
+                    return_possible_lists=True
         elif args[0].upper() in (date.upper() for date in dates):
             formatted_date = moment.date(args[0]).strftime("%Y/%m/%d")
             section = "allpeople"
             print('user provided a date.')
             print(formatted_date)
-        else:
+        else: 
             section = args[0]
             print('section provided: ', section)
         if len(args) > 1:
@@ -140,7 +167,15 @@ def lambda_handler(event, context):
         formatted_date = today.strftime("%Y/%m/%d")
         result_output = getPeople(section, section_filter, formatted_date)
     else:
-        result_output = get_help()
+        if return_selected_list:
+            result_output = get_help(selected_list)
+        elif return_possible_lists:
+            result_output = get_help("show_lists")
+        else:
+            result_output = get_help("default")
+                
+        # result_output = get_help()
+        
     # result_output = getPeople("allpeople", "none")
     # print(json.dumps(event.text))
     # print("Received event: " + json.dumps(event, indent=2))
@@ -231,7 +266,7 @@ def getPeople(section, section_filter, formatted_date):
         if section_filter == "none":
             try:
                 print('Listing Who\'s Out - Grouped by ' + section)
-                output_message += 'Listing Who\'s Out - Grouped by ' + section
+                output_message += '*Listing Who\'s Out - Grouped by* *' + section + '*'
 
                 employee_df = pd.DataFrame({
                     'displayName': [],
@@ -254,7 +289,7 @@ def getPeople(section, section_filter, formatted_date):
                     try:
                         grouping = groups.get_group(employee_sections)
                         print('\n-----------------'+'\n'+employee_sections+'\n'+'-----------------')
-                        output_message += '\n-----------------'+'\n'+employee_sections+'\n'+'-----------------'
+                        output_message += '\n*-----------------*'+'\n*'+employee_sections+'*\n'+'*-----------------*'
                         # pandas to_string defaults to right justify
                         print(grouping.displayName.to_string(index=False))
                         output_message += '\n'+grouping.displayName.to_string(index=False)
@@ -269,7 +304,7 @@ Type `/whosout help` for more examples or check BambooHR API documentation for p
 
         else:
             print('-----------------'+'\n'+section_filter+'\n'+'-----------------')
-            output_message += '-----------------'+'\n'+section_filter+'\n'+'-----------------'
+            output_message += '*-----------------*'+'\n*'+section_filter+'*\n'+'*-----------------*'
             for employee_id in employee_ids:
                 employee_info = getInfo(directory_in, employee_id, section)
                 if employee_info == section_filter:
@@ -310,4 +345,36 @@ def getInfo(directory_in, id, info_type):
         if people["id"] == str(id):
                 return people[info_type]
 
+def get_list_id(selected_list):
+    switcher = {
+        "department": 4,
+        "location": 18,
+    }
+    return switcher.get(selected_list, "Error: Invalid category name.")
 
+def getCategoryList(category):
+    ''' The getCategoryList function simply calls the meta/lists endpoint,
+        which returns a list of options.
+    '''
+
+    categories = []
+
+    # WARNING: THIS ISN'T VERY SCALABLE! Use with caution.
+    # This only works now because the only two options are provided by default.
+    # This wouldn't work for custom fields unless you hard coded the Ids here too.
+    # I'm not entirely sure the list Ids are even the same for all instances of Bamboo...
+    category_id = get_list_id(category)
+    dir_url = "https://api.bamboohr.com/api/gateway.php/"+domain+"/v1/meta/lists/" + str(category_id)
+    try:
+        full_dir = requests.request("GET", dir_url, headers=headers)
+    except requests.exceptions.RequestException as e:  # This is the correct syntax
+        print('Error making request to BambooHR API!:')
+        print(e)
+        sys.exit(1)
+
+    dir_blob=json.loads(full_dir.text)
+
+    for option in dir_blob["options"]:
+        categories.append((option["name"]))
+
+    return categories

@@ -18,6 +18,8 @@ Original script adapted to work as a Slack "Slash Command".
   * `serverless package --region <aws_region> --stage <development_stage>`
 * Deploy the project
   * `serverless deploy --package .serverless --region <aws_region> --stage <development_stage>`
+* Deploy on function at a time (quicker!)
+  * `serverless deploy --package .serverless --region <aws_region> --stage <development_stage> -f <function_name>`
 * The serverless project includes a Secrets Manager Secret (WhosOutSecrets) - after the first deployment make sure this is populated with two required keys:
   * `bamboohr_api`
     * This is the api key to use to communicate with the bamboohr api
@@ -29,7 +31,7 @@ Original script adapted to work as a Slack "Slash Command".
 Create an application and use the api gateway endpoint as the Request URL for a slash command.
 You can check the API gateway url on the AWS console after deploying, make sure you include the full resource path when you fill in the Request URL for the slash command, for example _https://<api-id>.execute-api.<region>.amazonaws.com/<stage>/whosout-<stage>-slackSlashCommand_.
 
-The command may be something _like_ `/whosout [department or location (optional)] [filter (optional)]`
+The command may be something _like_ `/whosout [department or location (optional)] [filter (optional)]` or `/whosout help`
 
 ## Acknowledgements
 
