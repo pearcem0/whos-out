@@ -205,7 +205,7 @@ def lambda_handler(event, context):
 
 def filter_input_args(user_text):
     user_text_in = user_text
-    text_field = str(re.search('&text=(.*)&response_url', user_text_in).group(1))
+    text_field = str(re.search('&text=(.*)&api_app_id', user_text_in).group(1))
     text_field_sliced = text_field.split("+",1)
     #make sure there are no empty items included in the list
     clean_text_field_sliced = list(filter(None, text_field_sliced))
