@@ -11,6 +11,13 @@
 Call BambooHR's API to find out who is currently Out Of Office. Group and filter on employee information such as location or department.
 Results are returned matching the current date that the code is run.
 
+**In Progress...**
+
+Well, unfinished. 🙄😳
+Intended as an fairly quick experiment, and to speed up the process of checking if a colleague is out of office.
+
+## General Usage
+
 The application prints the list of employees that are Out Of Office, grouped and/or filtered based on user input.
 
 The application can be run with no arguments and simply calls the whos_out endpoint and prints the result in sorted in alphabetical order.
@@ -41,7 +48,11 @@ If a section is provided with a section filter (e.g. department and sales), the 
 
 * install required python modules - this project used [pip env](https://pipenv.readthedocs.io/en/latest/) but you can also install any modules you do not already have installed using [pip](https://pypi.org/project/pip/).
 
-## Running
+## Running & Deploying (Implementation)
+
+As mentioned above, this is an experimental project, mostly used for learning and practice more recently. The intiial iteration was the [basic script](basic-script-docker/whos-out.py), then [Dockerising it](basic-script-docker/Dockerfile). 
+
+To deploy and make better use of it I set up a [slack bot](slackbot/deploy-with-lambda/README.md).
 
 * If you want to use pipenv you and run something *like* `pipenv run python whos-out.py`
 
@@ -104,14 +115,7 @@ Jack Wills
 John Smith
 Sandra Jones
  ```
-
-### Docker
-
-There is also a Dockerfile provided, you can build this and run the image, passing in the environment variables - something *like* this...
-
-`docker build -t whos-out .`
-`docker run -e bamboohr_api=$bamboohr_api -e bamboohr_domainn=$bamboohr_domain whos-out python3 /whos-out.py`
-
+ 
 ## Gotchas
 
 * [individual auth tokens only](https://documentation.bamboohr.com/docs#section-authentication) - BambooHR doesn't allow you to create system users to use a set api key, it must be authenticated and permissioned as if it were a real user of the software.
