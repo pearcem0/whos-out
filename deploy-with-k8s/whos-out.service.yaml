@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: whos-out
+  labels:
+    app: whos-out
+  namespace: whos-out
+spec:
+  selector:
+    app: whos-out
+  type: NodePort
+  ports:
+    - port: 5000

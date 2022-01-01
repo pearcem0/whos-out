@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whos-out
+  namespace: whos-out
+  labels:
+    app: whos-out
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whos-out
+  template:
+    metadata:
+        labels:
+          app: whos-out
+    spec:
+      containers:
+      - name: whos-out
+        image: docker.io/pearcem0/whos-out
+        env:
+          - name: bamboohr-domain
+            valueFrom:
+              secretKeyRef:
+                name: bamboohr-secrets
+                key: bamboohr-domain
+          - name: bamboohr-api
+            valueFrom:
+              secretKeyRef:
+                name: bamboohr-secrets
+                key: bamboohr-api
+        imagePullPolicy: "Always"
+        ports:
+        - containerPort: 5000
