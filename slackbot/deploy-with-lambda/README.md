@@ -23,6 +23,8 @@ Deployed as AWS Lambda functions exposed using Amazon API Gateway using the [Ser
 * Note the use of Lambda layers for packaging up the python libraries `moment` and `pandas`.
 * Slack expects a pretty quick response from the first API call, which isn't possible - so I've split the applicaiton into separate lambda functions - one to let Salck know we are thinking about it and then pass on the request/event details to the second lambda to get the results. 
 
+### Commands (follow with caution)
+
 * `npm install serverless@1.60.5`
 * `npm install serverless-pseudo-parameters`
 * `export AWS_PROFILE=<aws_profile_name>`
