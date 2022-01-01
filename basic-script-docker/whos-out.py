@@ -138,7 +138,8 @@ def getDirectory():
 
 def getInfo(directory_in, id, info_type):
     ''' The getInfo function gets the directory information for a single employee.
-        The funtion requires - employee directory to filter through
+        The funtion requires:
+        - employee directory to filter through
         - employee id to select
         - field (info type) to return such as department, location, jobTitle etc.
     '''
